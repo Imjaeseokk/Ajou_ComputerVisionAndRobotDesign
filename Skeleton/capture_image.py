@@ -2,7 +2,7 @@ import cv2
 import time
 
 # 저장할 경로 지정
-save_directory = "C:/Users/kakao/Desktop/Ajou_ComputerVisionAndRobotDesign/images/"
+save_directory = "C:/Users/kakao/Desktop/Ajou_ComputerVisionAndRobotDesign/object_images/"
 # 저장할 이미지 수 입력받기
 num_images = int(input("Enter the number of images to capture: "))
 
@@ -25,7 +25,7 @@ for i in range(1, num_images + 1):
     cv2.imshow("Camera View", frame)
 
     # 저장 경로 설정
-    save_path = f"{save_directory}hand_image_{i}.jpg"
+    save_path = f"{save_directory}object_image_{i+30}.jpg"
 
         # 이미지 저장
     cv2.imwrite(save_path, frame)
