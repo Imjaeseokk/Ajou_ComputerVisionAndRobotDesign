@@ -1,21 +1,18 @@
-# conda activate cvrobot
-# pip install mediapipe opencv-python
 import cv2
 import mediapipe as mp
-import numpy as np
+import os
 
-# Mediapipe Hands 초기화
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
-mp_draw = mp.solutions.drawing_utils
+def process_skeleton(image_path, output_path):
+    # Mediapipe Hands 초기화
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
+    mp_draw = mp.solutions.drawing_utils
 
-# 카메라 입력
-cap = cv2.VideoCapture(0)
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
+    # 이미지 읽기
+    frame = cv2.imread(image_path)
+    if frame is None:
+        print(f"Error: Unable to read image {image_path}")
+        return
 
     # BGR 이미지를 RGB로 변환
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -32,42 +29,57 @@ while cap.isOpened():
             h, w, c = frame.shape
             root_x, root_y = int(hand_landmarks.landmark[0].x * w), int(hand_landmarks.landmark[0].y * h)
 
-            # 손바닥 루트와 각 손가락 끝을 연결
-            finger_tips = [8, 12, 16, 20]  # 각 손가락 끝의 랜드마크 ID
-            for tip in finger_tips:
-                tip_x, tip_y = int(hand_landmarks.landmark[tip].x * w), int(hand_landmarks.landmark[tip].y * h)
+            # 검지 손가락 끝만 연결
+            tip = 8  # 검지 손가락 끝의 랜드마크 ID
+            tip_x, tip_y = int(hand_landmarks.landmark[tip].x * w), int(hand_landmarks.landmark[tip].y * h)
 
-                # 방향 벡터 계산
-                direction_x = tip_x - root_x
-                direction_y = tip_y - root_y
+            # 방향 벡터 계산
+            direction_x = tip_x - root_x
+            direction_y = tip_y - root_y
 
-                # 직선을 이미지 끝까지 연장
-                if direction_x != 0:
-                    slope = direction_y / direction_x
-                    if direction_x > 0:  # 오른쪽으로 연장
-                        end_x = w
-                    else:  # 왼쪽으로 연장
-                        end_x = 0
-                    end_y = int(root_y + slope * (end_x - root_x))
-                else:
-                    # 수직 직선의 경우
-                    end_x = tip_x
-                    end_y = 0 if direction_y < 0 else h
+            # 직선을 이미지 끝까지 연장
+            if direction_x != 0:
+                slope = direction_y / direction_x
+                if direction_x > 0:  # 오른쪽으로 연장
+                    end_x = w
+                else:  # 왼쪽으로 연장
+                    end_x = 0
+                end_y = int(root_y + slope * (end_x - root_x))
+            else:
+                # 수직 직선의 경우
+                end_x = tip_x
+                end_y = 0 if direction_y < 0 else h
 
-                # 직선 그리기
-                cv2.line(frame, (root_x, root_y), (end_x, end_y), (0, 255, 0), 2)
+            # 직선 그리기
+            cv2.line(frame, (root_x, root_y), (end_x, end_y), (0, 255, 0), 2)
 
-                # 손가락 끝 강조 (원 그리기)
-                cv2.circle(frame, (tip_x, tip_y), 5, (255, 0, 0), cv2.FILLED)
+            # 손가락 끝 강조 (원 그리기)
+            cv2.circle(frame, (tip_x, tip_y), 5, (255, 0, 0), cv2.FILLED)
 
             # 손바닥 루트 강조 (원 그리기)
             cv2.circle(frame, (root_x, root_y), 8, (0, 0, 255), cv2.FILLED)
 
-    # 출력 화면에 이미지 보여주기
-    cv2.imshow("Hand Root to Extended Finger Lines", frame)
+    # 결과 이미지 저장
+    cv2.imwrite(output_path, frame)
+    print(f"Skeleton image saved at {output_path}")
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # Mediapipe 자원 해제
+    hands.close()
 
-cap.release()
-cv2.destroyAllWindows()
+
+process_skeleton("C:/Users/kakao/Desktop/Ajou_ComputerVisionAndRobotDesign/object_images/hand_objects_image_1.jpg","C:/Users/kakao/Desktop/Ajou_ComputerVisionAndRobotDesign/object_images/hand_objects_image_skel_1.jpg")
+
+
+
+# if __name__ == "__main__":
+#     # 저장된 이미지 경로 지정
+#     save_directory = "C:/Users/kakao/Desktop/Ajou_ComputerVisionAndRobotDesign/object_images"
+
+#     # 디렉토리 내 파일 목록 가져오기
+#     image_files = [f for f in os.listdir(save_directory) if f.startswith("hand_") and f.endswith(".jpg")]
+
+#     for image_file in image_files:
+#         image_path = os.path.join(save_directory, image_file)
+#         output_path = os.path.join(save_directory, image_file.replace("hand_image_", "skeleton_image_"))
+
+#         process_skeleton(image_path, output_path)

@@ -25,14 +25,14 @@ for i in range(1, num_images + 1):
     cv2.imshow("Camera View", frame)
 
     # 저장 경로 설정
-    save_path = f"{save_directory}object_image_{i+30}.jpg"
+    save_path = f"{save_directory}hand_objects_image_{i}.jpg"
 
         # 이미지 저장
     cv2.imwrite(save_path, frame)
     print(f"Image {i} captured and saved to {save_path}")
 
     # 0.5초 대기
-    key = cv2.waitKey(750) & 0xFF
+    key = cv2.waitKey(1000) & 0xFF
     if key == ord('q'):
         print("Exiting early...")
         break

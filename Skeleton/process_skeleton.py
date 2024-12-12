@@ -1,8 +1,9 @@
 import cv2
 import mediapipe as mp
 import os
+import math
 
-def process_skeleton(image_path, output_path):
+def process_skeleton(image_path, object_centers):
     # Mediapipe Hands 초기화
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
@@ -20,51 +21,62 @@ def process_skeleton(image_path, output_path):
     # Mediapipe로 손 관절 감지
     result = hands.process(rgb_frame)
 
-    if result.multi_hand_landmarks:
-        for hand_landmarks in result.multi_hand_landmarks:
-            # 손 관절 랜드마크 그리기
-            mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+    if not result.multi_hand_landmarks:
+        print("No hands detected.")
+        hands.close()
+        return None
 
-            # 손바닥 root (landmark[0]) 추출
-            h, w, c = frame.shape
-            root_x, root_y = int(hand_landmarks.landmark[0].x * w), int(hand_landmarks.landmark[0].y * h)
+    # 첫 번째 손만 처리
+    hand_landmarks = result.multi_hand_landmarks[0]
 
-            # 검지 손가락 끝만 연결
-            tip = 8  # 검지 손가락 끝의 랜드마크 ID
-            tip_x, tip_y = int(hand_landmarks.landmark[tip].x * w), int(hand_landmarks.landmark[tip].y * h)
+    # 손바닥 루트 및 검지 끝 좌표 계산
+    h, w, _ = frame.shape
+    root_x, root_y = int(hand_landmarks.landmark[0].x * w), int(hand_landmarks.landmark[0].y * h)  # 손바닥 루트
+    tip_x, tip_y = int(hand_landmarks.landmark[8].x * w), int(hand_landmarks.landmark[8].y * h)  # 검지 끝
 
-            # 방향 벡터 계산
-            direction_x = tip_x - root_x
-            direction_y = tip_y - root_y
+    # 방향 벡터 계산
+    direction_x = tip_x - root_x
+    direction_y = tip_y - root_y
 
-            # 직선을 이미지 끝까지 연장
-            if direction_x != 0:
-                slope = direction_y / direction_x
-                if direction_x > 0:  # 오른쪽으로 연장
-                    end_x = w
-                else:  # 왼쪽으로 연장
-                    end_x = 0
-                end_y = int(root_y + slope * (end_x - root_x))
-            else:
-                # 수직 직선의 경우
-                end_x = tip_x
-                end_y = 0 if direction_y < 0 else h
+    # 직선을 이미지 끝까지 연장
+    if direction_x != 0:
+        slope = direction_y / direction_x
+        if direction_x > 0:  # 오른쪽으로 연장
+            end_x = w
+        else:  # 왼쪽으로 연장
+            end_x = 0
+        end_y = int(root_y + slope * (end_x - root_x))
+    else:
+        # 수직 직선의 경우
+        end_x = tip_x
+        end_y = 0 if direction_y < 0 else h
 
-            # 직선 그리기
-            cv2.line(frame, (root_x, root_y), (end_x, end_y), (0, 255, 0), 2)
+    # 직선 그리기 (시각화용)
+    cv2.line(frame, (root_x, root_y), (end_x, end_y), (0, 255, 0), 2)
 
-            # 손가락 끝 강조 (원 그리기)
-            cv2.circle(frame, (tip_x, tip_y), 5, (255, 0, 0), cv2.FILLED)
+    # 물체 중앙 좌표와의 거리 계산
+    closest_object = None
+    min_distance = float("inf")
 
-            # 손바닥 루트 강조 (원 그리기)
-            cv2.circle(frame, (root_x, root_y), 8, (0, 0, 255), cv2.FILLED)
+    for obj in object_centers:
+        center_x = obj["center_x"]
+        center_y = obj["center_y"]
 
-    # 결과 이미지 저장
-    cv2.imwrite(output_path, frame)
-    print(f"Skeleton image saved at {output_path}")
+        # 점과 직선 사이 거리 계산
+        distance = abs(direction_y * center_x - direction_x * center_y + (tip_x * root_y - tip_y * root_x)) / math.sqrt(direction_x**2 + direction_y**2)
+        if distance < min_distance:
+            min_distance = distance
+            closest_object = obj["class_name"]
 
     # Mediapipe 자원 해제
     hands.close()
+
+    # 결과 이미지 저장 (선택적)
+    output_path = image_path.replace("image_", "skeleton_with_objects_image_")
+    cv2.imwrite(output_path, frame)
+    print(f"Skeleton and object image saved at {output_path}")
+
+    return closest_object
 
 if __name__ == "__main__":
     # 저장된 이미지 경로 지정
