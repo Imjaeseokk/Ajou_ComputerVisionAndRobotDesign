@@ -1,3 +1,16 @@
 # Presentation Slides
 
-![Slide 1](slides/slide1.JPG)
+![Slide 1](/slides/slide1.JPG)
+![Slide 2](/slides/slide2.JPG)
+![Slide 3](/slides/slide3.JPG)
+![Slide 4](/slides/slide4.JPG)
+![Slide 5](/slides/slide5.JPG)
+![Slide 6](/slides/slide6.JPG)
+![Slide 7](/slides/slide7.JPG)
+![Slide 8](/slides/slide8.JPG)
+![Slide 9](/slides/slide9.JPG)
+![Slide 10](/slides/slide10.JPG)
+![Slide 11](/slides/slide11.JPG)
+![Slide 12](/slides/slide12.JPG)
+![Slide 13](/slides/slide13.JPG)
+![Slide 14](/slides/slide14.JPG)
