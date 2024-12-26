@@ -1,4 +1,4 @@
-# Ajou_ComputerVisionAndRobotDesign
+# Computer Vision and Robot Design in Ajou Univ
 
 ## 👋 Introduction
 
