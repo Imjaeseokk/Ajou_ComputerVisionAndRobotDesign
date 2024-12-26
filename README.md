@@ -86,6 +86,6 @@ python3 main.py
 ## 👏 Thank You!
 
 We are Team 2, consisting of the following members:
-- Jaeseokk `me✋`
+- [Jaeseokk](https://imjaeseokk.github.io/) `me✋`
 - [Hunseo](https://github.com/255is255)
 - [Sangcheon](https://github.com/Park-Sangcheon)
