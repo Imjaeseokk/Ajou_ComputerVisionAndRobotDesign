@@ -2,4 +2,4 @@
 
 
 ### 🎤 Presentation 
-![Slide1](.presentation/slides/slide1.JPG)
+![Slide1](./presentation/slides/slide1.JPG)
